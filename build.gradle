@@ -1,0 +1,99 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.openapitools:openapi-generator-gradle-plugin:3.3.4'
+    }
+}
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'java'
+    id 'application'
+}
+
+apply plugin: 'org.openapi.generator'
+
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+mainClassName = 'com.example.restful.JerseyApplication'
+
+ext {
+    jacksonVersion = '2.9.7'
+    jerseyVersion = '2.27'
+    jettyVersion = '9.4.14.v20181114'
+    slf4jVersion = '1.7.25'
+    swaggerVersion = '1.5.21'
+}
+
+def openapiGeneratedSources = "${project.buildDir}/generated-src"
+
+openApiGenerate {
+    delete openapiGeneratedSources
+    mkdir openapiGeneratedSources
+
+    generatorName = 'jaxrs-jersey'
+    inputSpec = "${project.rootDir}/specs/petstore-v3.0.yaml".toString()
+    outputDir = "${project.buildDir}/openapi-tmp".toString()
+    apiPackage = 'com.example.restful.api'
+    invokerPackage = 'com.example.restful.invoker'
+    modelPackage = 'com.example.restful.model'
+    configOptions = [
+            dateLibrary: 'java8'
+    ]
+}
+
+tasks.create('copyGeneratedSources') {
+    outputs.dir openapiGeneratedSources
+    
+    dependsOn 'openApiGenerate'
+    
+    doLast {
+        copy {
+            from "${project.buildDir}/openapi-tmp/src/gen/java"
+            into openapiGeneratedSources
+            exclude '**/main'
+        }
+    }
+}
+
+project.tasks.compileJava.dependsOn('copyGeneratedSources')
+
+sourceSets {
+    main {
+        java.srcDir openapiGeneratedSources
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation("io.swagger:swagger-jaxrs:${swaggerVersion}") {
+        exclude module: 'jsr311-api'
+    }
+    
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+    implementation "org.slf4j:slf4j-simple:${slf4jVersion}"
+
+    implementation "org.eclipse.jetty:jetty-server:${jettyVersion}"
+    implementation "org.eclipse.jetty:jetty-servlet:${jettyVersion}"
+
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jacksonVersion}"
+
+    implementation "org.glassfish.jersey.core:jersey-server:${jerseyVersion}"
+    implementation "org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}"
+    implementation "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyVersion}"
+    implementation "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVersion}"
+    implementation "org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}"
+    implementation "org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}"
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
