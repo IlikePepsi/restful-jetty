@@ -76,6 +76,8 @@ repositories {
 dependencies {
 
     implementation("io.swagger:swagger-jaxrs:${swaggerVersion}") {
+        // module pulls in older version of javax.ws.rs.core.Application 
+        // class which doesn't have a 'getProperties()' method
         exclude module: 'jsr311-api'
     }
     
