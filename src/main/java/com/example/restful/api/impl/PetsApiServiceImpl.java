@@ -75,14 +75,15 @@ public class PetsApiServiceImpl extends PetsApiService {
             return Response.status(400).entity(e).build();
         }
 
-        // handle any page in valid range
-        if (pets.size() >= (index + limit)) {
+        // handle pagintion
+        int elementsAfterIndex = pets.size() - index;
+
+        if (elementsAfterIndex >= limit) {
             responsePayload = pets.subList(index, (index + limit));
         }
 
-        // handle last page
-        if (pets.size() < (index + limit)) {
-            responsePayload = pets.subList(index, (index + (pets.size() % index)));
+        if (elementsAfterIndex < limit) {
+            responsePayload = pets.subList(index, (index + elementsAfterIndex));
         }
 
         return Response.ok().entity(responsePayload).header(
