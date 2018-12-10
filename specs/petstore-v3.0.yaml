@@ -48,7 +48,7 @@ paths:
               $ref: '#/components/schemas/PetPrototype'
       responses:
         '201':
-          description: Pet created
+          $ref: '#/components/responses/createPetsResponse'
         default:
           $ref: '#/components/responses/defaultResponse'
   /pets/{petId}:
@@ -64,6 +64,7 @@ paths:
         description: The id of the pet to retrieve
         schema:
           type: string
+          minLength: 1
       responses:
         '200':
           $ref: '#/components/responeses/getPetsByIdResponse'
@@ -71,6 +72,13 @@ paths:
           $ref: '#/components/responses/defaultResponse'
 components:
   responses:
+    createPetsResponse:
+      description: Expected response to a valid request
+      content:
+        application/json:
+          schema:
+            type: integer
+            format: int32
     getPetsResponse:
       description: Expected response to a valid request
       headers:

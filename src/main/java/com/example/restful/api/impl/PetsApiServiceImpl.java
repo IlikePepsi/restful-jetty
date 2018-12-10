@@ -45,7 +45,7 @@ public class PetsApiServiceImpl extends PetsApiService {
         pets.add(p);
 
         // do some magic!
-        return Response.ok().entity(null).build();
+        return Response.status(201).entity(p.getId()).build();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class PetsApiServiceImpl extends PetsApiService {
 
         // set default limit
         if (limit == null) {
-            limit = 100;
+            limit = 25;
         }
 
         // handle empty list
@@ -87,12 +87,18 @@ public class PetsApiServiceImpl extends PetsApiService {
         }
 
         return Response.ok().entity(responsePayload).header(
-                "X-next", "localhost:9090/api/pets" + "?limit=" + limit + "&index=" + (limit + index)).build();
+                "X-next", "localhost:12345/api/pets" + "?limit=" + limit + "&index=" + (limit + index)).build();
     }
 
     @Override
     public Response showPetById(String petId, SecurityContext securityContext) throws NotFoundException {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+
+        for (Pet p : pets) {
+            if (p.getId() == Integer.parseInt(petId)) {
+                return Response.ok().entity(p).build();
+            }
+        }
+
+        return Response.ok().build();
     }
 }
