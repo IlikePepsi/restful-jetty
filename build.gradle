@@ -47,6 +47,10 @@ openApiGenerate {
     ]
 }
 
+openApiGenerate {
+//    generatorName = ''
+}
+
 tasks.create('copyGeneratedSources') {
     outputs.dir openapiGeneratedSources
     
@@ -87,6 +91,7 @@ dependencies {
     implementation "org.eclipse.jetty:jetty-server:${jettyVersion}"
     implementation "org.eclipse.jetty:jetty-servlet:${jettyVersion}"
     implementation "org.eclipse.jetty:jetty-webapp:${jettyVersion}"
+    implementation "org.eclipse.jetty:jetty-jmx:${jettyVersion}"
 
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
     implementation "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jacksonVersion}"
