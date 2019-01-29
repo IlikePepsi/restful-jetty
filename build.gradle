@@ -32,13 +32,12 @@ ext {
 
 def openapiGeneratedSources = "${project.buildDir}/generated-src"
 
-openApiGenerate {
-    delete openapiGeneratedSources
-    mkdir openapiGeneratedSources
+// server
 
+task buildJavaServer(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
     generatorName = 'jaxrs-jersey'
     inputSpec = "${project.rootDir}/specs/petstore-v3.0.yaml".toString()
-    outputDir = "${project.buildDir}/openapi-tmp".toString()
+    outputDir = "${project.buildDir}/openapi-tmp/server".toString()
     apiPackage = 'com.example.restful.api'
     invokerPackage = 'com.example.restful.invoker'
     modelPackage = 'com.example.restful.model'
@@ -47,18 +46,32 @@ openApiGenerate {
     ]
 }
 
-openApiGenerate {
-//    generatorName = ''
+// client
+task buildJavaScriptClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = 'javascript'
+    inputSpec = "${project.rootDir}/specs/petstore-v3.0.yaml".toString()
+    outputDir = "${project.buildDir}/openapi-tmp/client".toString()
+    apiPackage = 'com.example.restful.api'
+    invokerPackage = 'com.example.restful.invoker'
+    modelPackage = 'com.example.restful.model'
+    configOptions = [
+            dateLibrary: 'java8'
+    ]
 }
 
-tasks.create('copyGeneratedSources') {
+task codegen(dependsOn: ['buildJavaServer', 'buildJavaScriptClient'])
+
+task copyGeneratedSources {
+    delete openapiGeneratedSources
+    mkdir openapiGeneratedSources
+
     outputs.dir openapiGeneratedSources
-    
-    dependsOn 'openApiGenerate'
-    
+
+    dependsOn 'codegen'
+
     doLast {
         copy {
-            from "${project.buildDir}/openapi-tmp/src/gen/java"
+            from "${project.buildDir}/openapi-tmp/server/src/gen/java"
             into openapiGeneratedSources
             exclude '**/main'
         }
@@ -80,11 +93,11 @@ repositories {
 dependencies {
 
     implementation("io.swagger:swagger-jaxrs:${swaggerVersion}") {
-        // module pulls in older version of javax.ws.rs.core.Application 
+        // module pulls in older version of javax.ws.rs.core.Application
         // class which doesn't have a 'getProperties()' method
         exclude module: 'jsr311-api'
     }
-    
+
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "org.slf4j:slf4j-simple:${slf4jVersion}"
 
