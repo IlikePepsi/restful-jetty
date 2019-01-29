@@ -28,8 +28,12 @@ public class JerseyApplication {
         final URL warUrl = Thread.currentThread().getContextClassLoader().getResource("webapp");
         final String warUrlString = warUrl.toExternalForm();
 
+        String[] welcomeFiles = {"index.html"};
+
         webAppContext.setContextPath("/petshop");
         webAppContext.setWar(warUrlString);
+        webAppContext.setWelcomeFiles(welcomeFiles);
+        webAppContext.setDisplayName("Petshop App");
 
         return webAppContext;
     }
