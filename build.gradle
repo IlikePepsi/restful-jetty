@@ -78,6 +78,8 @@ task copyGeneratedSources {
     }
 }
 
+// TODO: create task that collects all *.js files and copies them into webapp/js/
+
 project.tasks.compileJava.dependsOn('copyGeneratedSources')
 
 sourceSets {
@@ -97,6 +99,8 @@ dependencies {
         // class which doesn't have a 'getProperties()' method
         exclude module: 'jsr311-api'
     }
+
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.3"
 
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "org.slf4j:slf4j-simple:${slf4jVersion}"

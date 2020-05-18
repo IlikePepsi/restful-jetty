@@ -1,8 +1,7 @@
 package com.example.restful;
 
-import org.eclipse.jetty.jmx.MBeanContainer;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -11,9 +10,6 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletContext;
-
-import java.lang.management.ManagementFactory;
 import java.net.URL;
 
 import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
@@ -28,12 +24,11 @@ public class JerseyApplication {
         final URL warUrl = Thread.currentThread().getContextClassLoader().getResource("webapp");
         final String warUrlString = warUrl.toExternalForm();
 
-        String[] welcomeFiles = {"index.html"};
-
         webAppContext.setContextPath("/petshop");
         webAppContext.setWar(warUrlString);
-        webAppContext.setWelcomeFiles(welcomeFiles);
+        webAppContext.setWelcomeFiles(new String[] {"index.html"});
         webAppContext.setDisplayName("Petshop App");
+        
 
         return webAppContext;
     }
@@ -57,7 +52,10 @@ public class JerseyApplication {
 
     public static void main(String[] args) {
 
-        Server server = new Server(12345);
+        Server server = new Server();
+        ServerConnector connector = new ServerConnector(server);
+        connector.setPort(12345);
+        server.addConnector(connector);
 
         HandlerList handlerList = new HandlerList();
 
