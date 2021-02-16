@@ -1,40 +1,36 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.openapitools:openapi-generator-gradle-plugin:3.3.4'
-    }
-}
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
+    id 'org.openapi.generator' version '4.3.1'
     id 'com.github.johnrengelman.shadow' version '4.0.3'
     id 'java'
     id 'application'
 }
 
-apply plugin: 'org.openapi.generator'
-
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 
-mainClassName = 'com.example.restful.JerseyApplication'
+mainClassName = 'com.example.restful.JettyServer'
 
 ext {
-    jacksonVersion = '2.9.7'
-    jerseyVersion = '2.27'
-    jettyVersion = '9.4.14.v20181114'
-    slf4jVersion = '1.7.25'
+//    jacksonVersion = '2.9.7'
+//    jerseyVersion = '2.27'
+//    jettyVersion = '9.4.14.v20181114'
+//    slf4jVersion = '1.7.25'
     swaggerVersion = '1.5.21'
+
+    jacksonVersion = '2.11.1'
+    jerseyVersion = '2.31'
+    jettyVersion = '9.4.30.v20200611'
+    slf4jVersion = '1.7.30'
+//    swaggerVersion = '2.1.4'
 }
 
 def openapiGeneratedSources = "${project.buildDir}/generated-src"
 
 // server
-
-task buildJavaServer(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+task generateJavaServer(type: GenerateTask) {
     generatorName = 'jaxrs-jersey'
     inputSpec = "${project.rootDir}/specs/petstore-v3.0.yaml".toString()
     outputDir = "${project.buildDir}/openapi-tmp/server".toString()
@@ -42,12 +38,27 @@ task buildJavaServer(type: org.openapitools.generator.gradle.plugin.tasks.Genera
     invokerPackage = 'com.example.restful.invoker'
     modelPackage = 'com.example.restful.model'
     configOptions = [
-            dateLibrary: 'java8'
+            dateLibrary         : 'java8',
+            java8               : 'true',
+            library             : 'jersey2',
+            serializationLibrary: 'jackson'
+
     ]
+
+    doFirst {
+        delete(openapiGeneratedSources)
+        mkdir(openapiGeneratedSources)
+
+        copy {
+            from "${project.buildDir}/openapi-tmp/server/src/gen/java"
+            into openapiGeneratedSources
+            exclude '**/main'
+        }
+    }
 }
 
 // client
-task buildJavaScriptClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+task generateJavaScriptClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
     generatorName = 'javascript'
     inputSpec = "${project.rootDir}/specs/petstore-v3.0.yaml".toString()
     outputDir = "${project.buildDir}/openapi-tmp/client".toString()
@@ -59,28 +70,13 @@ task buildJavaScriptClient(type: org.openapitools.generator.gradle.plugin.tasks.
     ]
 }
 
-task codegen(dependsOn: ['buildJavaServer', 'buildJavaScriptClient'])
+task codegen(dependsOn: ['generateJavaServer', 'generateJavaScriptClient'])
 
-task copyGeneratedSources {
-    delete openapiGeneratedSources
-    mkdir openapiGeneratedSources
-
-    outputs.dir openapiGeneratedSources
-
-    dependsOn 'codegen'
-
-    doLast {
-        copy {
-            from "${project.buildDir}/openapi-tmp/server/src/gen/java"
-            into openapiGeneratedSources
-            exclude '**/main'
-        }
-    }
+tasks.compileJava {
+    dependsOn codegen
 }
 
 // TODO: create task that collects all *.js files and copies them into webapp/js/
-
-project.tasks.compileJava.dependsOn('copyGeneratedSources')
 
 sourceSets {
     main {
@@ -90,16 +86,24 @@ sourceSets {
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
 
-    implementation("io.swagger:swagger-jaxrs:${swaggerVersion}") {
+    implementation "io.swagger:swagger-annotations:1.6.2"
+    implementation("io.swagger:swagger-jaxrs:1.6.2") {
         // module pulls in older version of javax.ws.rs.core.Application
         // class which doesn't have a 'getProperties()' method
         exclude module: 'jsr311-api'
     }
 
+    implementation "commons-cli:commons-cli:1.4"
+
+    implementation "org.bouncycastle:bcprov-jdk15on:1.66"
+    implementation "org.bouncycastle:bcpkix-jdk15on:1.66"
+
+    implementation "javax.el:javax.el-api:3.0.0"
     implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.3"
 
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
@@ -108,6 +112,8 @@ dependencies {
     implementation "org.eclipse.jetty:jetty-server:${jettyVersion}"
     implementation "org.eclipse.jetty:jetty-servlet:${jettyVersion}"
     implementation "org.eclipse.jetty:jetty-webapp:${jettyVersion}"
+    implementation "org.eclipse.jetty:jetty-annotations:${jettyVersion}"
+    implementation "org.eclipse.jetty:jetty-plus:${jettyVersion}"
     implementation "org.eclipse.jetty:jetty-jmx:${jettyVersion}"
 
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"

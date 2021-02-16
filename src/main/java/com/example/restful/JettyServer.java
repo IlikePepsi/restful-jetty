@@ -14,9 +14,9 @@ import java.net.URL;
 
 import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
 
-public class JerseyApplication {
+public class JettyServer {
 
-    private static final Logger logger = LoggerFactory.getLogger(JerseyApplication.class);
+    private static final Logger logger = LoggerFactory.getLogger(JettyServer.class);
 
     private static WebAppContext webAppContext() {
 
