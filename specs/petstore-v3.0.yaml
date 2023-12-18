@@ -1,4 +1,4 @@
-openapi: "3.0.0"
+openapi: "3.0.3"
 info:
   version: 1.0.0
   title: Swagger Petstore
@@ -31,7 +31,7 @@ paths:
           format: int32
       responses:
         '200':
-          $ref: '#components/responses/getPetsResponse'
+          $ref: '#/components/responses/getPetsResponse'
         default:
           $ref: '#/components/responses/defaultResponse'
     post:
@@ -67,7 +67,7 @@ paths:
           minLength: 1
       responses:
         '200':
-          $ref: '#/components/responeses/getPetsByIdResponse'
+          $ref: '#/components/responses/getPetsByIdResponse'
         default:
           $ref: '#/components/responses/defaultResponse'
 components:
@@ -103,16 +103,18 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
   schemas:
+
     Pet:
       allOf:
-      - $ref: '#/components/schemas/PetPrototype'
-      - type: object
-        required:
+        - $ref: '#/components/schemas/PetPrototype'
+      type: object
+      required:
         - id
-        properties:
-          id:
-            type: integer
-            format: int64
+      properties:
+        id:
+          type: integer
+          format: int64
+
     PetPrototype:
       required:
       - name
@@ -121,10 +123,47 @@ components:
           type: string
         tag:
           type: string
+
     Pets:
       type: array
       items:
         $ref: "#/components/schemas/Pet"
+
+    PolymorphPet:
+      type: object
+      discriminator:
+        propertyName: petType
+      properties:
+        petType:
+          type: string
+      # unrequire discriminator field to prevent JSON validation error
+#      required:
+#      - petType
+
+
+    # Inline enums require @JsonValue annotation which is not imported by the generated code
+    Cat: 
+      allOf:
+      - $ref: '#/components/schemas/PolymorphPet'
+      type: object
+      properties:
+        laziness:
+          $ref: '#/components/schemas/Laziness'
+        #  type: string
+        #  enum:
+        #  - marginal
+        #  - moderate
+        #  - tremendous
+      required:
+      - laziness
+
+    Laziness:
+      type: string
+      enum:
+      - marginal
+      - moderate
+      - tremendous
+
     Error:
       required:
       - code
